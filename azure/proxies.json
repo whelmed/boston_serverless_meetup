@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json.schemastore.org/proxies",
+    "proxies": {
+        "GetProxy": {
+            "matchCondition": {
+                "route": "/",
+                "methods": [
+                    "GET"
+                ]
+            },
+            "backendUri": "https://ca-anony-twit.azurewebsites.net/api/Get"
+        },
+        "SaveProxy": {
+            "matchCondition": {
+                "route": "/",
+                "methods": [
+                    "POST"
+                ]
+            },
+            "backendUri": "https://ca-anony-twit.azurewebsites.net/api/Save"
+        }
+    }
+}

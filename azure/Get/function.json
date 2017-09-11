@@ -1,0 +1,25 @@
+{
+  "bindings": [
+    {
+      "authLevel": "anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    },
+    {
+      "type": "documentDB",
+      "name": "inputDoc",
+      "databaseName": "tweetdb",
+      "collectionName": "tweetCollection",
+      "sqlQuery": "SELECT c.content,  c.header,  c.created,  c.id  FROM c",
+      "connection": "tweetdb_DOCUMENTDB",
+      "direction": "in"
+    }
+  ],
+  "disabled": false
+}
