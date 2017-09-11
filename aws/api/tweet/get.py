@@ -1,39 +1,33 @@
+import os
 import json
-import logging
-from api.tweet.models import Tweet
-# For this demo, let's log ALL THE THINGS!
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+import uuid
+import datetime
+import boto3
+from boto3.dynamodb.conditions import Key
+from .helper import respond, created_key
 
-def respond(err, res=None):
-    # In a real app error messages shouldn't be sent to the end user.
-    # This is a security concern. However, in a demo, for debugging, it's okay.
-    body = {}
-    if err:
-        body = json.dumps({'error': err})
-    else:
-        body = json.dumps(res)
-    return {
-        'statusCode': '400' if err else '200',
-        'body': body,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin' : '*'
-        },
-    }
 
 def handler(event, context):
-    # The only expected failures will be from connection issues to the DB.
-    tweets = []
-    exception = None
-    try:
-        tweets = Tweet().all()
-        logging.info("{} tweets fetched".format(len(tweets)))
-    except Exception as ex:
-        exception = ex.args[0]
-        logging.error("Could not fetch tweets in get.py. Message: {}".format(exception))
+    ''' The get handler '''
+    table_name = os.getenv('TWEET_TABLE',
+                           'tweet_test')  # Table from env vars or tweet_test
+    region_name = os.getenv('AWS_REGION',
+                            'us-east-1')  # Region from env vars or east 1
+    client = boto3.resource('dynamodb', region_name=region_name)
 
-    return respond(exception, [t.to_dict() for t in tweets] )
+    result = get_all(client, table_name)
+
+    return respond(None, result)
 
 
-        
+def get_all(client, table_name):
+    ''' Returns all tweets items for the given user.
+        client is the dynamodb client
+        table_name is the name of the dynamodb table where records are stored
+    '''
+    table = client.Table(table_name)
+    # Get today's tweets
+    response = self.table.query(
+        KeyConditionExpression=Key('created_key').eq(created_key()))
+    if 'Items' in response:
+        return response['Items']

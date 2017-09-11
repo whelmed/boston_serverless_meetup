@@ -1,41 +1,50 @@
+import os
 import json
-import logging
-from api.tweet.models import Tweet
-# For this demo, let's log ALL THE THINGS!
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+import uuid
+import datetime
+import boto3
+from .helper import respond, created_key
 
-def respond(err, res=None):
-    # In a real app error messages shouldn't be sent to the end user.
-    # This is a security concern. However, in a demo, for debugging, it's okay.
-    body = {}
-    if err:
-        body = json.dumps({'error': err})
-    else:
-        body = json.dumps(res)
-    return {
-        'statusCode': '400' if err else '200',
-        'body': body,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin' : '*'
-        },
-    }
 
 def handler(event, context):
-    tweet = None
-    exception = None
+    data = None
+
     try:
-        tweet = Tweet()
-        tweet.init_from_dict(json.loads(event['body']))
-        tweet.save()
-        logging.info("Tweet with id {} saved!".format(tweet.id))
+        data = json.loads(event['body'])
     except Exception as ex:
-        exception = ex.args[0]
-        tweet = None
-        logging.error("Error saving tweet in get.py. Message: {}".format(exception))
+        return respond(ex.args[0], None)  # Bail out and return an error
 
-    return respond(exception, tweet.to_dict() if tweet else {})
+    # Make sure users don't add more properties than they should
+    # A whitelist will ensure that any property non in this list is removed
+    whitelist = ['content', 'header']
+    table_name = os.getenv('TWEET_TABLE',
+                           'tweet_test')  # Table from env vars or tweet_test
+    region_name = os.getenv('AWS_REGION',
+                            'us-east-1')  # Region from env vars or east 1
+    client = boto3.resource('dynamodb', region_name=region_name)
+
+    result = create(client, user_id, data, table_name, whitelist)
+
+    return respond(None, result)
 
 
-        
+def create(client, data, table_name, whitelist):
+    ''' client is the dynamodb client
+        data is a dict for properties to store in dynamodb.
+        table_name is the name of the dynamodb table where records are stored
+        whitelist is a list of properties that users are allowed to edit for their own records.
+    '''
+    if 'content' not in data or 'header' not in data:
+        raise ValueError(
+            'The tweet requires both a content and header property')
+
+    table = client.Table(table_name)
+    # Create a new dict that contains just whitelisted properties.
+    whitelisted_data = {k: v for k, v in data.items() if k in whitelist}
+
+    whitelisted_data['created'] = str(uuid.uuid4())
+    whitelisted_data['created_key'] = created_key()
+
+    table.put_item(Item=whitelisted_data)
+
+    return whitelisted_data
