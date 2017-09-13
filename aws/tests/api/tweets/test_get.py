@@ -8,8 +8,8 @@ import json
 from os.path import dirname, join
 from moto import mock_dynamodb2
 
-from todo.api.create import create
-from todo.api.get import get_all, get_one, handler
+from api.tweet.post import create
+from api.tweet.get import get_all, handler
 from dbconfig import init
 
 
@@ -72,7 +72,7 @@ class TestGetAPI(unittest.TestCase):
         # Verify the contents of the body
         assert 'body' in results
         body = json.loads(results['body'])
-        assert len(body) == 2
+        assert len(body) == 3
         # Verify that the correct records are returned
         assert all([i['content'] in ['A', 'B', 'C'] for i in todo_items])
 

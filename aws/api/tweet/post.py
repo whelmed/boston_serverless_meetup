@@ -23,7 +23,7 @@ def handler(event, context):
                             'us-east-1')  # Region from env vars or east 1
     client = boto3.resource('dynamodb', region_name=region_name)
 
-    result = create(client, user_id, data, table_name, whitelist)
+    result = create(client, data, table_name, whitelist)
 
     return respond(None, result)
 

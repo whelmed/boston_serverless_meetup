@@ -27,7 +27,7 @@ def get_all(client, table_name):
     '''
     table = client.Table(table_name)
     # Get today's tweets
-    response = self.table.query(
+    response = table.query(
         KeyConditionExpression=Key('created_key').eq(created_key()))
     if 'Items' in response:
         return response['Items']

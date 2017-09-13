@@ -8,8 +8,8 @@ import json
 from os.path import dirname, join
 from moto import mock_dynamodb2
 
-from api.tweet.get import create, handler
-from .dbconfig import init
+from api.tweet.post import create, handler
+from dbconfig import init
 
 
 class TestCreateAPI(unittest.TestCase):
