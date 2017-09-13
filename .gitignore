@@ -107,3 +107,4 @@ ubuntu-xenial*
 *.zip
 .DS_Store
 credentials
+.serverless
